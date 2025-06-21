@@ -1,26 +1,57 @@
-"nginx.template.conf" = '''
-# ...
-http {
-    # ...
-    server {
-        # ...
-        location ~ \.php$ {
-            fastcgi_pass 127.0.0.1:9000;
-            fastcgi_buffer_size 8k;
-            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-            include $!{nginx}/conf/fastcgi_params;
-            include $!{nginx}/conf/fastcgi.conf;
+[build]
+builder = "heroku/builder:22"
 
-            # ...
-        }
-    }
-}
+[phases.setup]
+# PHP, Composer, and Laravel required setup can go here if needed
+
 [phases.build]
 cmds = [
-      # ...
-    "chmod -R 775 /app/storage /app/bootstrap/cache",
-    "chown -R www-data:www-data /app/storage /app/bootstrap/cache",
-    "composer install --optimize-autoloader --no-dev",
-    "php artisan optimize:clear"
-      # ...
+  "chmod -R 775 /app/storage /app/bootstrap/cache",
+  "chown -R www-data:www-data /app/storage /app/bootstrap/cache",
+  "composer install --optimize-autoloader --no-dev",
+  "php artisan optimize:clear"
 ]
+
+[start]
+cmd = "php-fpm -D && nginx -g 'daemon off;'"
+
+[nginx]
+port = 8080
+root = "/app/public"
+
+[nginx.static]
+include = true
+
+[nginx.locations]
+"/" = '''
+    try_files $uri $uri/ /index.php?$query_string;
+'''
+"~ \.php$" = '''
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_buffer_size 8k;
+    fastcgi_param SCRIPT_FILENAME $realpath_root/$fastcgi_script_name;
+    include fastcgi_params;
+    include fastcgi.conf;
+'''
+
+[env]
+APP_ENV = "production"
+APP_DEBUG = "false"
+APP_KEY = "base64:YOUR_APP_KEY"
+APP_URL = "https://your-app-url.com"
+
+# Optional variables Laravel is warning about
+# POSTMARK_MESSAGE_STREAM_ID = ""
+# MAIL_LOG_CHANNEL = ""
+# DB_QUEUE_CONNECTION = ""
+# AWS_ACCESS_KEY_ID = ""
+# AWS_SECRET_ACCESS_KEY = ""
+# SQS_SUFFIX = ""
+# POSTMARK_TOKEN = ""
+# RESEND_KEY = ""
+# SLACK_BOT_USER_OAUTH_TOKEN = ""
+# SLACK_BOT_USER_DEFAULT_CHANNEL = ""
+# SESSION_CONNECTION = ""
+# SESSION_STORE = ""
+# SESSION_SECURE_COOKIE = ""
+
