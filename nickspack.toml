@@ -1,9 +1,6 @@
 [build]
 builder = "heroku/builder:22"
 
-[phases.setup]
-# PHP, Composer, and Laravel required setup can go here if needed
-
 [phases.build]
 cmds = [
   "chmod -R 775 /app/storage /app/bootstrap/cache",
@@ -19,16 +16,12 @@ cmd = "php-fpm -D && nginx -g 'daemon off;'"
 port = 8080
 root = "/app/public"
 
-[nginx.static]
-include = true
-
 [nginx.locations]
-"/" = '''
-    try_files $uri $uri/ /index.php?$query_string;
-'''
 "~ \.php$" = '''
     fastcgi_pass 127.0.0.1:9000;
+    fastcgi_index index.php;
     fastcgi_buffer_size 8k;
+    fastcgi_buffers 16 16k;
     fastcgi_param SCRIPT_FILENAME $realpath_root/$fastcgi_script_name;
     include fastcgi_params;
     include fastcgi.conf;
@@ -37,21 +30,12 @@ include = true
 [env]
 APP_ENV = "production"
 APP_DEBUG = "false"
-APP_KEY = "base64:YOUR_APP_KEY"
-APP_URL = "https://your-app-url.com"
+APP_URL = "https://your-domain.com"
+APP_KEY = "base64:paste_your_generated_key_here"
 
-# Optional variables Laravel is warning about
+# Optional env vars (define in Coolify UI or uncomment here)
 # POSTMARK_MESSAGE_STREAM_ID = ""
 # MAIL_LOG_CHANNEL = ""
-# DB_QUEUE_CONNECTION = ""
 # AWS_ACCESS_KEY_ID = ""
 # AWS_SECRET_ACCESS_KEY = ""
-# SQS_SUFFIX = ""
-# POSTMARK_TOKEN = ""
-# RESEND_KEY = ""
 # SLACK_BOT_USER_OAUTH_TOKEN = ""
-# SLACK_BOT_USER_DEFAULT_CHANNEL = ""
-# SESSION_CONNECTION = ""
-# SESSION_STORE = ""
-# SESSION_SECURE_COOKIE = ""
-
