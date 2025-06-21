@@ -1,0 +1,26 @@
+"nginx.template.conf" = '''
+# ...
+http {
+    # ...
+    server {
+        # ...
+        location ~ \.php$ {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_buffer_size 8k;
+            fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+            include $!{nginx}/conf/fastcgi_params;
+            include $!{nginx}/conf/fastcgi.conf;
+
+            # ...
+        }
+    }
+}
+[phases.build]
+cmds = [
+      # ...
+    "chmod -R 775 /app/storage /app/bootstrap/cache",
+    "chown -R www-data:www-data /app/storage /app/bootstrap/cache",
+    "composer install --optimize-autoloader --no-dev",
+    "php artisan optimize:clear"
+      # ...
+]
